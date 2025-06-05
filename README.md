@@ -18,7 +18,3 @@ Este é um projeto simples de xadrez jogado via terminal, implementado em Python
 - Validação básica de movimento por tipo de peça
 - Captura de peças inimigas
 - Fim de jogo ao capturar o rei
-
----
-
-## 📷 Exemplo no Terminal
