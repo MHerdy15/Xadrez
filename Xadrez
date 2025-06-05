@@ -1,16 +1,16 @@
-# mini_xadrez.py
+# xadrez_completo.py
 
 def criar_tabuleiro():
-    # Criação do tabuleiro com peças iniciais simplificadas
+    # Cria um tabuleiro padrão com todas as peças de xadrez
     tabuleiro = [["." for _ in range(8)] for _ in range(8)]
 
-    # Peças pretas
+    # Pretas (maiúsculas)
     tabuleiro[0] = ["T", "C", "B", "Q", "K", "B", "C", "T"]
     tabuleiro[1] = ["P"] * 8
 
-    # Peças brancas
-    tabuleiro[7] = ["t", "c", "b", "q", "k", "b", "c", "t"]
+    # Brancas (minúsculas)
     tabuleiro[6] = ["p"] * 8
+    tabuleiro[7] = ["t", "c", "b", "q", "k", "b", "c", "t"]
 
     return tabuleiro
 
@@ -30,10 +30,7 @@ def coordenada_para_indice(coord):
         return None
 
 def e_peça_do_jogador(peça, jogador):
-    if jogador == "branco":
-        return peça.islower()
-    else:
-        return peça.isupper()
+    return peça.islower() if jogador == "branco" else peça.isupper()
 
 def movimento_valido(peça, origem, destino, tabuleiro):
     dx = destino[0] - origem[0]
@@ -42,18 +39,54 @@ def movimento_valido(peça, origem, destino, tabuleiro):
 
     if peça == "p":  # Peão
         direção = -1 if peça.islower() else 1
-        return dx == direção and dy == 0
+        start_row = 6 if peça.islower() else 1
+        # Movimento simples
+        if dx == direção and dy == 0 and tabuleiro[destino[0]][destino[1]] == ".":
+            return True
+        # Duplo passo do início
+        if origem[0] == start_row and dx == 2 * direção and dy == 0 and tabuleiro[origem[0] + direção][origem[1]] == "." and tabuleiro[destino[0]][destino[1]] == ".":
+            return True
+        # Captura
+        if dx == direção and abs(dy) == 1 and tabuleiro[destino[0]][destino[1]] != ".":
+            return True
+        return False
+
     elif peça == "c":  # Cavalo
         return (abs(dx), abs(dy)) in [(2, 1), (1, 2)]
+
     elif peça == "t":  # Torre
-        return dx == 0 or dy == 0
+        if dx != 0 and dy != 0:
+            return False
+        return caminho_livre(origem, destino, tabuleiro)
+
     elif peça == "b":  # Bispo
-        return abs(dx) == abs(dy)
+        if abs(dx) != abs(dy):
+            return False
+        return caminho_livre(origem, destino, tabuleiro)
+
     elif peça == "q":  # Rainha
-        return dx == 0 or dy == 0 or abs(dx) == abs(dy)
+        if dx == 0 or dy == 0 or abs(dx) == abs(dy):
+            return caminho_livre(origem, destino, tabuleiro)
+        return False
+
     elif peça == "k":  # Rei
         return max(abs(dx), abs(dy)) == 1
+
     return False
+
+def caminho_livre(origem, destino, tabuleiro):
+    dx = destino[0] - origem[0]
+    dy = destino[1] - origem[1]
+    passos = max(abs(dx), abs(dy))
+    dir_x = (dx // passos) if dx != 0 else 0
+    dir_y = (dy // passos) if dy != 0 else 0
+
+    for passo in range(1, passos):
+        x = origem[0] + passo * dir_x
+        y = origem[1] + passo * dir_y
+        if tabuleiro[x][y] != ".":
+            return False
+    return True
 
 def jogar():
     tabuleiro = criar_tabuleiro()
@@ -70,32 +103,32 @@ def jogar():
         destino = coordenada_para_indice(destino_str)
 
         if not origem or not destino:
-            print("Coordenadas inválidas.\n")
+            print("❌ Coordenadas inválidas.\n")
             continue
 
         peça = tabuleiro[origem[0]][origem[1]]
         if peça == "." or not e_peça_do_jogador(peça, turno):
-            print("Nenhuma peça sua nessa posição.\n")
+            print("❌ Nenhuma peça sua nessa posição.\n")
             continue
 
         destino_peça = tabuleiro[destino[0]][destino[1]]
         if destino_peça != "." and e_peça_do_jogador(destino_peça, turno):
-            print("Você não pode capturar sua própria peça.\n")
+            print("❌ Você não pode capturar sua própria peça.\n")
             continue
 
         if not movimento_valido(peça, origem, destino, tabuleiro):
-            print("Movimento inválido para essa peça.\n")
+            print("❌ Movimento inválido para essa peça.\n")
             continue
 
         if destino_peça.lower() == "k":
-            print(f"O rei do jogador {'preto' if turno == 'branco' else 'branco'} foi capturado!")
-            print(f"{turno.upper()} venceu!")
+            print(f"👑 O rei do jogador {'preto' if turno == 'branco' else 'branco'} foi capturado!")
+            print(f"✅ {turno.upper()} venceu!")
             break
 
         tabuleiro[destino[0]][destino[1]] = peça
         tabuleiro[origem[0]][origem[1]] = "."
         turno = "preto" if turno == "branco" else "branco"
 
-# Rodar o jogo
+# Executar o jogo
 if __name__ == "__main__":
     jogar()
