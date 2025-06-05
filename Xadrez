@@ -1,0 +1,101 @@
+# mini_xadrez.py
+
+def criar_tabuleiro():
+    # Criação do tabuleiro com peças iniciais simplificadas
+    tabuleiro = [["." for _ in range(8)] for _ in range(8)]
+
+    # Peças pretas
+    tabuleiro[0] = ["T", "C", "B", "Q", "K", "B", "C", "T"]
+    tabuleiro[1] = ["P"] * 8
+
+    # Peças brancas
+    tabuleiro[7] = ["t", "c", "b", "q", "k", "b", "c", "t"]
+    tabuleiro[6] = ["p"] * 8
+
+    return tabuleiro
+
+def imprimir_tabuleiro(tabuleiro):
+    print("  a b c d e f g h")
+    for i, linha in enumerate(tabuleiro):
+        print(f"{8 - i} " + " ".join(linha))
+    print()
+
+def coordenada_para_indice(coord):
+    colunas = "abcdefgh"
+    try:
+        coluna = colunas.index(coord[0])
+        linha = 8 - int(coord[1])
+        return linha, coluna
+    except (IndexError, ValueError):
+        return None
+
+def e_peça_do_jogador(peça, jogador):
+    if jogador == "branco":
+        return peça.islower()
+    else:
+        return peça.isupper()
+
+def movimento_valido(peça, origem, destino, tabuleiro):
+    dx = destino[0] - origem[0]
+    dy = destino[1] - origem[1]
+    peça = peça.lower()
+
+    if peça == "p":  # Peão
+        direção = -1 if peça.islower() else 1
+        return dx == direção and dy == 0
+    elif peça == "c":  # Cavalo
+        return (abs(dx), abs(dy)) in [(2, 1), (1, 2)]
+    elif peça == "t":  # Torre
+        return dx == 0 or dy == 0
+    elif peça == "b":  # Bispo
+        return abs(dx) == abs(dy)
+    elif peça == "q":  # Rainha
+        return dx == 0 or dy == 0 or abs(dx) == abs(dy)
+    elif peça == "k":  # Rei
+        return max(abs(dx), abs(dy)) == 1
+    return False
+
+def jogar():
+    tabuleiro = criar_tabuleiro()
+    turno = "branco"
+
+    while True:
+        imprimir_tabuleiro(tabuleiro)
+        print(f"Vez do jogador {turno}")
+
+        origem_str = input("Digite a posição da peça que quer mover (ex: e2): ").lower()
+        destino_str = input("Digite a posição de destino (ex: e4): ").lower()
+
+        origem = coordenada_para_indice(origem_str)
+        destino = coordenada_para_indice(destino_str)
+
+        if not origem or not destino:
+            print("Coordenadas inválidas.\n")
+            continue
+
+        peça = tabuleiro[origem[0]][origem[1]]
+        if peça == "." or not e_peça_do_jogador(peça, turno):
+            print("Nenhuma peça sua nessa posição.\n")
+            continue
+
+        destino_peça = tabuleiro[destino[0]][destino[1]]
+        if destino_peça != "." and e_peça_do_jogador(destino_peça, turno):
+            print("Você não pode capturar sua própria peça.\n")
+            continue
+
+        if not movimento_valido(peça, origem, destino, tabuleiro):
+            print("Movimento inválido para essa peça.\n")
+            continue
+
+        if destino_peça.lower() == "k":
+            print(f"O rei do jogador {'preto' if turno == 'branco' else 'branco'} foi capturado!")
+            print(f"{turno.upper()} venceu!")
+            break
+
+        tabuleiro[destino[0]][destino[1]] = peça
+        tabuleiro[origem[0]][origem[1]] = "."
+        turno = "preto" if turno == "branco" else "branco"
+
+# Rodar o jogo
+if __name__ == "__main__":
+    jogar()
